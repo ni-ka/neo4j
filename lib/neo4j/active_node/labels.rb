@@ -1,10 +1,12 @@
 module Neo4j
   module ActiveNode
 
-
     # Provides a mapping between neo4j labels and Ruby classes
     module Labels
       extend ActiveSupport::Concern
+
+      class RecordNotFoundError < StandardError
+      end
 
       WRAPPED_CLASSES = []
 
@@ -75,6 +77,13 @@ module Neo4j
           end
         end
 
+        # Finds a model by given id or matching given criteria.
+        # When node not found, raises RecordNotFoundError
+        def find!(*args)
+          self.find(*args).tap do |result|
+            raise Neo4j::ActiveNode::Labels::RecordNotFoundError if result.nil?
+          end
+        end
 
         # Destroy all nodes an connected relationships
         def destroy_all
